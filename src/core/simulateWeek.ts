@@ -88,7 +88,7 @@ export function simulateWeek(input: GameState): { state: GameState; report: Week
   let tokens = 0;
   const shippedNow: CaseState[] = [];
   for (const c of state.cases) {
-    traceMap.set(c.id, { caseId: c.id, fromIndex: currentStageId(c) - 1, toIndex: currentStageId(c) - 1, shipped: false, stamps: [] });
+    traceMap.set(c.id, { caseId: c.id, fromIndex: currentStageId(c) - 1, toIndex: currentStageId(c) - 1, shipped: false, newCase: c.acceptedWeek === week, stamps: [] });
   }
 
   for (const st of state.stages) {
@@ -339,7 +339,7 @@ export function simulateWeek(input: GameState): { state: GameState; report: Week
     completedDev,
     accidents: ev.accidents,
     lineStopped,
-    traces: [...traceMap.values()].filter((t) => t.toIndex !== t.fromIndex || t.stamps.length > 0 || t.shipped),
+    traces: [...traceMap.values()].filter((t) => t.newCase || t.toIndex !== t.fromIndex || t.stamps.length > 0 || t.shipped),
     logs,
   };
 

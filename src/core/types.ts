@@ -109,6 +109,7 @@ export interface CaseTrace {
   fromIndex: number;
   toIndex: number;
   shipped: boolean;
+  newCase: boolean;
   reworkTo?: number;
   stamps: { stageId: number; label: string }[];
 }
