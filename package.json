@@ -8,10 +8,11 @@
     "build": "tsc -p . && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "headless": "tsx scripts/headless.ts",
+    "balance": "tsx scripts/balance.ts",
     "typecheck": "tsc -p ."
   },
   "dependencies": {
+    "lucide-react": "^1.72.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "zustand": "^5.1.0"
