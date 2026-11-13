@@ -1,17 +1,17 @@
 import { useEffect } from 'react';
-import { useGame } from '../../store/gameStore';
+import { useGame } from '../../store';
 
 export function Toast() {
-  const { message, setMessage } = useGame();
+  const { toast, showToast } = useGame();
   useEffect(() => {
-    if (!message) return;
-    const t = setTimeout(() => setMessage(null), 3500);
+    if (!toast) return;
+    const t = setTimeout(() => showToast(null), 2600);
     return () => clearTimeout(t);
-  }, [message, setMessage]);
-  if (!message) return null;
+  }, [toast, showToast]);
+  if (!toast) return null;
   return (
-    <div className="fadein fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white shadow-lg" role="status">
-      {message}
+    <div className="anim-slide fixed left-1/2 top-16 z-[60] w-[calc(100%-32px)] max-w-[440px] -translate-x-1/2 rounded-2xl bg-ink px-4 py-3 text-center text-sm font-bold text-white shadow-lg" role="status">
+      {toast}
     </div>
   );
 }
