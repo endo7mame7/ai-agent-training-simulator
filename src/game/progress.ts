@@ -71,9 +71,9 @@ export function applyRun(save: SaveData, summary: RunSummary): RewardResult {
 
 export function hireAgent(save: SaveData, id: string): SaveData | string {
   const def = AGENTS.find((a) => a.id === id);
-  if (!def) return 'その子はいません';
-  if (save.agents.some((a) => a.id === id)) return 'もう仲間です';
-  if (save.coins < def.hireCost) return `コインが足りません(${def.hireCost}🪙 必要)`;
+  if (!def) return '該当するエージェントがいません';
+  if (save.agents.some((a) => a.id === id)) return '採用済みです';
+  if (save.coins < def.hireCost) return `コインが不足しています(${def.hireCost} 必要)`;
   const next = structuredClone(save);
   next.coins -= def.hireCost;
   next.agents.push({ id, level: 1, exp: 0 });

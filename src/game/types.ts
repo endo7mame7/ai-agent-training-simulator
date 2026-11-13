@@ -7,7 +7,6 @@ export type RunMode = 'test' | 'real';
 export interface StepDef {
   id: string;
   name: string;
-  emoji: string;
   /** LLM が考える工程(トークン代がかかる) */
   llm: boolean;
   /** ツールがないとうまくできない工程 */
@@ -22,7 +21,8 @@ export interface MissionDef {
   no: number;
   title: string;
   client: string;
-  clientEmoji: string;
+  /** 依頼主のアイコン */
+  icon: 'croissant' | 'bird' | 'plane' | 'plug' | 'umbrella' | 'cart';
   request: string;
   hint: string;
   steps: StepDef[];

@@ -1,12 +1,12 @@
 {
   "name": "AGENT FACTORY",
   "short_name": "AGENT FACTORY",
-  "description": "AIエージェントが働ける環境をつくる、かわいい経営パズル",
+  "description": "AIエージェントが働ける環境をつくる、ハーネス設計パズル",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#fff6f0",
-  "theme_color": "#ff8fb1",
+  "background_color": "#f4f2ee",
+  "theme_color": "#f4f2ee",
   "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }

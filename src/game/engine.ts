@@ -38,9 +38,9 @@ export function preflight(mission: MissionDef, build: Build, energyMax: number):
   const errors: string[] = [];
   const warnings: string[] = [];
   const used = usedEnergy(build);
-  if (used > energyMax) errors.push(`⚡段取りポイントが足りません(${used} / ${energyMax})`);
+  if (used > energyMax) errors.push(`段取りポイントが不足しています(${used} / ${energyMax})`);
   for (const s of mission.steps) {
-    if (s.needsTool && !(build.slots[s.id] ?? []).includes('tool')) warnings.push(`「${s.name}」にツールがないと、DBを見られません`);
+    if (s.needsTool && !(build.slots[s.id] ?? []).includes('tool')) warnings.push(`「${s.name}」にツールがないため、DBを参照できません`);
   }
   return { errors, warnings };
 }

@@ -77,7 +77,7 @@ export const useGame = create<Store>((set, get) => ({
   openMission: (id) => {
     const { save, run } = get();
     if (run && run.missionId !== id && (run.status === 'running' || run.status === 'paused' || run.status === 'awaiting')) {
-      set({ toast: '実行中の案件があります。先に終わらせてね' });
+      set({ toast: '実行中の案件があります。完了または停止してから切り替えてください' });
       return;
     }
     set({ missionId: id, build: buildFor(save, id), tab: 'dev' });
@@ -139,7 +139,7 @@ export const useGame = create<Store>((set, get) => ({
   hire: (id) => {
     const r = hireAgent(get().save, id);
     if (typeof r === 'string') return set({ toast: r });
-    set({ save: r, toast: 'あたらしい仲間が来ました!' });
+    set({ save: r, toast: '新しいエージェントが加わりました' });
     persist(r, get().run);
   },
   welcome: () => {

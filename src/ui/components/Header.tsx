@@ -1,20 +1,18 @@
-import { companyLevel, totalStars } from '../../game/progress';
-import { useGame } from '../../store';
+import { Banknote } from 'lucide-react';
+import { useGame, type Tab } from '../../store';
+
+const TITLE: Record<Tab, string> = { office: 'オフィス', dev: '開発', missions: '案件', analysis: '分析' };
 
 export function Header() {
-  const save = useGame((s) => s.save);
+  const { save, tab } = useGame();
   return (
-    <header className="sticky top-0 z-20 border-b-2 border-[#f6dbe4] bg-cream/95 px-4 pb-2 pt-[max(10px,env(safe-area-inset-top))] backdrop-blur">
-      <div className="flex items-center gap-2">
-        <div className="leading-none">
-          <div className="text-[10px] font-extrabold tracking-[0.2em] text-pink">AGENT</div>
-          <div className="text-lg font-extrabold tracking-wider">FACTORY</div>
-        </div>
-        <div className="ml-auto flex items-center gap-1.5">
-          <span className="rounded-full bg-grape-soft px-2.5 py-1 text-xs font-extrabold text-grape">Lv.{companyLevel(save)}</span>
-          <span className="rounded-full bg-lemon-soft px-2.5 py-1 text-xs font-extrabold text-[#b8860b]">⭐ {totalStars(save)}</span>
-          <span className="rounded-full bg-white px-3 py-1 text-sm font-extrabold shadow-[inset_0_0_0_2px_#ffe3a3]">🪙 {save.coins.toLocaleString()}</span>
-        </div>
+    <header className="sticky top-0 z-20 bg-bg/90 px-4 pb-2 pt-[max(14px,env(safe-area-inset-top))] backdrop-blur">
+      <div className="flex items-center">
+        <h1 className="text-[22px] font-bold tracking-tight">{TITLE[tab]}</h1>
+        <span className="num ml-auto inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-bold shadow-soft">
+          <Banknote size={16} className="text-butter" />
+          {save.coins.toLocaleString()}
+        </span>
       </div>
     </header>
   );

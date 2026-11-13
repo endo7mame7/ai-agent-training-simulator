@@ -1,12 +1,15 @@
+import { CircleAlert, FileText, FlaskConical, Mail, Plus, Rocket, Send, Trash2, TriangleAlert, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { agentDef, CARDS, cardsFor, missionDef, TIER_ORDER, TIERS } from '../../game/data';
 import { maxEnergy, preflight, usedEnergy } from '../../game/engine';
 import { progressOf } from '../../game/progress';
 import type { Build, CardId, StepDef } from '../../game/types';
 import { useGame } from '../../store';
-import { Robot } from '../components/Robot';
-import { Btn, Card, cx, Pill, pct, Sheet, Stars } from '../components/ui';
+import { AgentAvatar } from '../components/AgentAvatar';
+import { CARD_ICON, HUE, STEP_ICON } from '../components/icons';
+import { Btn, Card, cx, Label, Pill, pct, Sheet, Stars, Tile } from '../components/ui';
 import { Briefing } from './MissionsScreen';
+import { ClientTile } from './OfficeScreen';
 
 type SlotRef = { kind: 'step'; stepId: string; index: number } | { kind: 'common'; index: number };
 
@@ -33,71 +36,72 @@ export function DevScreen() {
     const err = startRun(mode);
     if (err) showToast(err);
   };
-
   const slotCard = (ref: SlotRef): CardId | null => (ref.kind === 'common' ? build.common[ref.index] : build.slots[ref.stepId][ref.index]);
 
   return (
-    <div className="space-y-4">
-      {/* 案件の見出し */}
+    <div className="space-y-3">
+      {/* 案件 */}
       <Card className="p-4">
         <div className="flex items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-pink-soft text-3xl">{mission.clientEmoji}</span>
+          <ClientTile icon={mission.icon} />
           <div className="min-w-0 flex-1">
-            <div className="text-[11px] font-extrabold text-pink">CASE {mission.no}</div>
-            <div className="truncate text-lg font-extrabold">{mission.title}</div>
+            <Label>CASE {mission.no}</Label>
+            <div className="truncate text-[15px] font-bold">{mission.title}</div>
           </div>
-          <Btn tone="white" size="sm" onClick={() => setBrief(true)}>
-            依頼書
+          <Btn tone="secondary" size="sm" onClick={() => setBrief(true)}>
+            <FileText size={15} /> 依頼書
           </Btn>
         </div>
         {last && (
-          <div className="mt-3 flex items-center gap-2 rounded-2xl bg-cream px-3 py-2 text-xs font-bold">
-            前回: 正答{pct(last.accuracy)}・自動{pct(last.auto)}・🪙{last.cost}
+          <div className="num mt-3 flex items-center gap-2 rounded-xl bg-bg px-3 py-2 text-xs text-sub">
+            前回 正答 {pct(last.accuracy)} · 自動 {pct(last.auto)} · コスト {last.cost}
             <span className="ml-auto">
-              <Stars n={last.stars} size="text-sm" />
+              <Stars n={last.stars} size={13} />
             </span>
           </div>
         )}
       </Card>
 
-      {/* 担当とポイント */}
+      {/* 段取りポイント・担当・LLM */}
       <Card className="p-4">
         <div className="flex items-center justify-between">
-          <div className="text-sm font-extrabold">⚡ 段取りポイント</div>
-          <div className={cx('text-xl font-extrabold tabular-nums', used > max ? 'text-pink' : 'text-ink')}>
-            {used} <span className="text-sm text-[#b7a3b8]">/ {max}</span>
-          </div>
+          <span className="flex items-center gap-1.5 text-sm font-bold">
+            <Zap size={16} className="text-butter" /> 段取りポイント
+          </span>
+          <span className={cx('num text-xl font-bold', used > max && 'text-coral')}>
+            {used}
+            <span className="text-sm text-faint"> / {max}</span>
+          </span>
         </div>
         <div className="mt-2 flex gap-1">
           {Array.from({ length: Math.max(max, used) }, (_, i) => (
-            <span key={i} className={cx('h-4 flex-1 rounded-md', i < used ? (i < max ? 'bg-lemon shadow-[inset_0_-3px_0_#e6b020]' : 'bg-pink') : 'bg-[#f6e6ec]')} />
+            <span key={i} className={cx('h-2 flex-1 rounded-full', i < used ? (i < max ? 'bg-ink' : 'bg-coral') : 'bg-line')} />
           ))}
         </div>
 
-        <div className="mt-4 text-xs font-extrabold text-[#9a8aa0]">担当エージェント</div>
-        <div className="no-scrollbar mt-1 flex gap-2 overflow-x-auto">
+        <Label className="mt-5">担当エージェント</Label>
+        <div className="no-scrollbar mt-2 flex gap-2 overflow-x-auto">
           {save.agents.map((a) => {
-            const d = agentDef(a.id);
+            const on = build.agentId === a.id;
             return (
               <button
                 key={a.id}
                 type="button"
                 onClick={() => update((b) => (b.agentId = a.id))}
-                className={cx('press flex min-w-[96px] cursor-pointer items-center gap-1 rounded-2xl border-2 px-2 py-1', build.agentId === a.id ? 'border-pink bg-pink-soft' : 'border-[#f0d6df] bg-white')}
+                className={cx('press flex min-h-12 shrink-0 cursor-pointer items-center gap-2 rounded-2xl border py-1.5 pl-1.5 pr-3', on ? 'border-ink bg-ink text-white' : 'border-line bg-white')}
               >
-                <Robot color={d.color} accent={d.accent} size={34} mood={build.agentId === a.id ? 'happy' : 'idle'} />
-                <span className="text-left text-xs font-extrabold leading-tight">
-                  {d.name}
-                  <br />
-                  <span className="font-bold text-[#9a8aa0]">Lv.{a.level}</span>
+                <AgentAvatar id={a.id} size={34} />
+                <span className="text-left text-xs font-bold leading-tight">
+                  {agentDef(a.id).name}
+                  <span className={cx('num block font-medium', on ? 'text-white/60' : 'text-faint')}>Lv.{a.level}</span>
                 </span>
               </button>
             );
           })}
         </div>
 
-        <div className="mt-4 text-xs font-extrabold text-[#9a8aa0]">つかうLLM</div>
-        <div className="mt-1 grid grid-cols-3 gap-2">
+        <Label className="mt-5">モデル</Label>
+        <div className="mt-2 grid grid-cols-3 gap-2">
           {TIER_ORDER.map((t) => {
             const d = TIERS[t];
             const on = build.tier === t;
@@ -106,24 +110,25 @@ export function DevScreen() {
                 key={t}
                 type="button"
                 onClick={() => update((b) => (b.tier = t))}
-                className={cx('press min-h-[84px] cursor-pointer rounded-2xl border-2 p-2 text-center', on ? 'border-sky bg-sky-soft' : 'border-[#f0d6df] bg-white')}
+                className={cx('press min-h-[70px] cursor-pointer rounded-2xl border p-2.5 text-left', on ? 'border-ink bg-ink text-white' : 'border-line bg-white')}
               >
-                <div className="text-xl">{t === 'small' ? '🐣' : t === 'medium' ? '🐥' : '🦉'}</div>
-                <div className="text-sm font-extrabold">{d.short}</div>
-                <div className="text-[10px] font-bold leading-tight">
-                  ⚡{d.energy} ・ 🪙{d.price}/回
+                <div className="text-sm font-bold">{d.short}</div>
+                <div className={cx('num mt-1 text-[11px] leading-snug', on ? 'text-white/70' : 'text-sub')}>
+                  段取り {d.energy}
+                  <br />
+                  {d.price} コイン/回
                 </div>
               </button>
             );
           })}
         </div>
-        <p className="mt-1 text-center text-[11px]">{TIERS[build.tier].desc}</p>
+        <p className="mt-2 text-xs text-sub">{TIERS[build.tier].desc}</p>
       </Card>
 
       {/* ライン全体 */}
       {available.some((c) => CARDS[c].scope === 'common') && (
         <Card className="p-4">
-          <div className="text-sm font-extrabold">🏭 ライン全体</div>
+          <div className="text-sm font-bold">ライン全体</div>
           <div className="mt-2 grid grid-cols-2 gap-2">
             {build.common.map((c, i) => (
               <SlotButton key={i} card={c} onClick={() => setSlot({ kind: 'common', index: i })} />
@@ -132,53 +137,53 @@ export function DevScreen() {
         </Card>
       )}
 
-      {/* ハーネスのフロー */}
-      <div>
-        <div className="mb-2 px-1 text-sm font-extrabold">🧩 ハーネス(仕事の流れ)</div>
-        <div className="flex flex-col items-center">
-          <FlowCap emoji="📨" label="お問い合わせメール" />
-          {mission.steps.map((s) => (
-            <div key={s.id} className="flex w-full flex-col items-center">
-              <Arrow />
-              <StepCard step={s} cards={build.slots[s.id]} onSlot={(index) => setSlot({ kind: 'step', stepId: s.id, index })} />
-            </div>
-          ))}
-          <Arrow />
-          <FlowCap emoji="💌" label="お客さまへお返事" />
+      {/* ワークフロー */}
+      <div className="pt-2">
+        <div className="mb-2 px-1 text-sm font-bold">ワークフロー</div>
+        <div className="relative">
+          <div className="absolute bottom-6 left-[34px] top-6 w-0.5 bg-line" aria-hidden />
+          <div className="relative space-y-2.5">
+            <Cap icon={<Mail size={18} />} label="問い合わせメール" />
+            {mission.steps.map((s) => (
+              <StepCard key={s.id} step={s} cards={build.slots[s.id]} onSlot={(index) => setSlot({ kind: 'step', stepId: s.id, index })} />
+            ))}
+            <Cap icon={<Send size={18} />} label="お客さまへ返信" />
+          </div>
         </div>
       </div>
 
       {(check.errors.length > 0 || check.warnings.length > 0) && (
-        <div className="space-y-1.5 rounded-2xl bg-white p-3 text-sm">
-          <div className="font-extrabold">📝 実行前チェック</div>
+        <div className="space-y-1.5 rounded-2xl bg-white p-4 text-[13px]">
+          <div className="font-bold">実行前チェック</div>
           {check.errors.map((e) => (
-            <div key={e} className="font-bold text-pink">
-              ⛔ {e}
+            <div key={e} className="flex items-start gap-2 text-coral">
+              <CircleAlert size={16} className="mt-0.5 shrink-0" /> {e}
             </div>
           ))}
           {check.warnings.map((w) => (
-            <div key={w} className="text-[#b8860b]">
-              ⚠️ {w}
+            <div key={w} className="flex items-start gap-2 text-butter">
+              <TriangleAlert size={16} className="mt-0.5 shrink-0" /> {w}
             </div>
           ))}
         </div>
       )}
 
-      {/* 実行ボタン */}
-      <div className="sticky bottom-[78px] z-10 -mx-1 grid grid-cols-[1fr_1.4fr] gap-2 rounded-3xl bg-cream/90 p-1 backdrop-blur">
-        <Btn tone="sky" onClick={() => go('test')} disabled={check.errors.length > 0 && !busy}>
-          <span className="flex flex-col leading-tight">
-            <span>🧪 テスト</span>
-            <span className="text-[10px]">5件・報酬なし</span>
+      <div className="sticky bottom-[76px] z-10 -mx-1 grid grid-cols-[1fr_1.5fr] gap-2 rounded-3xl bg-bg/90 p-1 backdrop-blur">
+        <Btn tone="secondary" onClick={() => go('test')} disabled={check.errors.length > 0 && !busy}>
+          <FlaskConical size={17} />
+          <span className="flex flex-col items-start leading-tight">
+            <span>テスト</span>
+            <span className="num text-[10px] font-medium text-sub">5件 · 報酬なし</span>
           </span>
         </Btn>
-        <Btn tone="pink" onClick={() => go('real')} disabled={check.errors.length > 0 && !busy}>
+        <Btn tone="primary" onClick={() => go('real')} disabled={check.errors.length > 0 && !busy}>
+          <Rocket size={17} />
           {busy ? (
-            '⚙️ 実行中を見る'
+            '実行中を表示'
           ) : (
-            <span className="flex flex-col leading-tight">
-              <span>🚀 本番実行</span>
-              <span className="text-[10px]">{mission.emails}件・報酬あり</span>
+            <span className="flex flex-col items-start leading-tight">
+              <span>本番実行</span>
+              <span className="num text-[10px] font-medium text-white/60">{mission.emails}件 · 報酬あり</span>
             </span>
           )}
         </Btn>
@@ -191,7 +196,7 @@ export function DevScreen() {
           available={available}
           others={slot.kind === 'step' ? build.slots[slot.stepId].filter((_, i) => i !== slot.index) : build.common.filter((_, i) => i !== slot.index)}
           remaining={max - used + (slotCard(slot) ? CARDS[slotCard(slot)!].cost : 0)}
-          title={slot.kind === 'common' ? 'ライン全体のカード' : `「${mission.steps.find((s) => s.id === slot.stepId)!.name}」に置くカード`}
+          title={slot.kind === 'common' ? 'ライン全体' : mission.steps.find((s) => s.id === slot.stepId)!.name}
           onPick={(c) => {
             update((b) => {
               if (slot.kind === 'common') b.common[slot.index] = c;
@@ -207,34 +212,35 @@ export function DevScreen() {
   );
 }
 
-function FlowCap({ emoji, label }: { emoji: string; label: string }) {
+function Cap({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-extrabold shadow-[0_3px_0_#f0d6df]">
-      <span className="text-xl">{emoji}</span>
-      {label}
+    <div className="flex items-center gap-3 px-3">
+      <Tile size={44} className="bg-ink text-white">
+        {icon}
+      </Tile>
+      <span className="text-[13px] font-bold text-sub">{label}</span>
     </div>
   );
 }
 
-function Arrow() {
-  return <div className="my-1 h-5 w-1.5 rounded-full bg-[#f3c6d5]" aria-hidden />;
-}
-
 function StepCard({ step, cards, onSlot }: { step: StepDef; cards: (CardId | null)[]; onSlot: (i: number) => void }) {
+  const Icon = STEP_ICON[step.id];
   return (
-    <div className="pop-shadow w-full rounded-3xl border-2 border-[#f6dbe4] bg-white p-3">
-      <div className="flex items-center gap-2">
-        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cream text-2xl">{step.emoji}</span>
+    <div className="shadow-soft rounded-3xl bg-white p-3">
+      <div className="flex items-center gap-3">
+        <Tile size={44} className="bg-floor text-white">
+          <Icon size={20} />
+        </Tile>
         <div className="flex-1">
-          <div className="font-extrabold">{step.name}</div>
-          <div className="mt-0.5 flex flex-wrap gap-1">
-            {step.llm ? <Pill className="bg-sky-soft text-sky">🧠 LLMが考える</Pill> : <Pill className="bg-[#f3eef5] text-[#9a8aa0]">⚙️ 機械的な作業</Pill>}
-            {step.needsTool && <Pill className="bg-lemon-soft text-[#b8860b]">🗄️ DBを見る</Pill>}
-            {step.sends && <Pill className="bg-pink-soft text-pink">📤 外に送る</Pill>}
+          <div className="text-[15px] font-bold">{step.name}</div>
+          <div className="mt-1 flex flex-wrap gap-1">
+            {step.llm ? <Pill className="bg-sky-soft text-sky">LLM 推論</Pill> : <Pill>定型処理</Pill>}
+            {step.needsTool && <Pill className="bg-butter-soft text-butter">DB 参照</Pill>}
+            {step.sends && <Pill className="bg-coral-soft text-coral">外部送信</Pill>}
           </div>
         </div>
       </div>
-      <div className="mt-2 grid grid-cols-2 gap-2">
+      <div className="mt-3 grid grid-cols-2 gap-2">
         {cards.map((c, i) => (
           <SlotButton key={i} card={c} onClick={() => onSlot(i)} />
         ))}
@@ -246,18 +252,18 @@ function StepCard({ step, cards, onSlot }: { step: StepDef; cards: (CardId | nul
 function SlotButton({ card, onClick }: { card: CardId | null; onClick: () => void }) {
   if (!card)
     return (
-      <button type="button" onClick={onClick} className="press flex min-h-12 cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed border-[#e7b9c8] text-sm font-extrabold text-[#d79ab0]">
-        ＋ カード
+      <button type="button" onClick={onClick} className="press flex min-h-12 cursor-pointer items-center justify-center gap-1 rounded-2xl border border-dashed border-[#cfd3db] text-[13px] font-bold text-faint hover:border-ink hover:text-ink">
+        <Plus size={15} /> カード
       </button>
     );
   const d = CARDS[card];
+  const Icon = CARD_ICON[card];
+  const hue = HUE[d.hue];
   return (
-    <button type="button" onClick={onClick} className={cx('press anim-pop flex min-h-12 cursor-pointer items-center gap-1.5 rounded-2xl border-2 px-2 text-left', d.color)}>
-      <span className="text-xl">{d.emoji}</span>
-      <span className="text-sm font-extrabold leading-tight">
-        {d.name}
-        <span className="block text-[10px] font-bold opacity-70">⚡{d.cost}</span>
-      </span>
+    <button type="button" onClick={onClick} className={cx('press anim-pop flex min-h-12 cursor-pointer items-center gap-2 rounded-2xl px-2.5 text-left', hue.soft)}>
+      <Icon size={17} className={hue.text} />
+      <span className="flex-1 text-[13px] font-bold">{d.name}</span>
+      <span className="num text-[11px] font-bold text-sub">{d.cost}</span>
     </button>
   );
 }
@@ -276,9 +282,11 @@ function CardPicker(props: {
   return (
     <Sheet open onClose={props.onClose} title={props.title}>
       <div className="space-y-2">
-        {list.length === 0 && <p className="text-sm">ここに置けるカードはまだありません。</p>}
+        {list.length === 0 && <p className="text-sm text-sub">ここに置けるカードはまだありません。</p>}
         {list.map((c) => {
           const d = CARDS[c];
+          const Icon = CARD_ICON[c];
+          const hue = HUE[d.hue];
           const dup = props.others.includes(c);
           const poor = d.cost > props.remaining;
           const on = props.current === c;
@@ -288,25 +296,30 @@ function CardPicker(props: {
               type="button"
               disabled={(dup || poor) && !on}
               onClick={() => props.onPick(c)}
-              className={cx('press flex w-full cursor-pointer items-center gap-3 rounded-2xl border-2 p-3 text-left disabled:cursor-not-allowed disabled:opacity-40', on ? 'border-pink bg-pink-soft' : d.color)}
+              className={cx('press flex w-full cursor-pointer items-center gap-3 rounded-2xl border bg-white p-3 text-left disabled:cursor-not-allowed disabled:opacity-40', on ? 'border-ink' : 'border-transparent')}
             >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-2xl">{d.emoji}</span>
+              <Tile size={44} className={cx(hue.soft, hue.text)}>
+                <Icon size={20} />
+              </Tile>
               <span className="flex-1">
-                <span className="block font-extrabold">
-                  {d.name} <span className="text-[10px] font-bold opacity-60">{d.en}</span>
+                <span className="block text-sm font-bold">
+                  {d.name} <span className="ml-1 text-[11px] font-medium text-faint">{d.en}</span>
                 </span>
-                <span className="block text-xs leading-snug">{d.desc}</span>
-                {dup && !on && <span className="block text-[11px] font-bold text-pink">同じカードはもう置いてあります</span>}
-                {poor && !dup && !on && <span className="block text-[11px] font-bold text-pink">⚡が足りません</span>}
+                <span className="block text-xs leading-snug text-sub">{d.desc}</span>
+                {dup && !on && <span className="block text-[11px] font-bold text-coral">この工程に配置済み</span>}
+                {poor && !dup && !on && <span className="block text-[11px] font-bold text-coral">段取りポイントが不足</span>}
               </span>
-              <span className="rounded-full bg-white px-2 py-1 text-sm font-extrabold">⚡{d.cost}</span>
+              <span className="num inline-flex items-center gap-0.5 text-sm font-bold">
+                <Zap size={13} className="text-butter" />
+                {d.cost}
+              </span>
             </button>
           );
         })}
       </div>
       {props.current && (
-        <Btn tone="white" className="mt-3 w-full" onClick={() => props.onPick(null)}>
-          🗑️ カードをはずす
+        <Btn tone="secondary" className="mt-3 w-full" onClick={() => props.onPick(null)}>
+          <Trash2 size={16} /> 外す
         </Btn>
       )}
     </Sheet>
